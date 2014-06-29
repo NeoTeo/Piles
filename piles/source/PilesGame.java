@@ -1,13 +1,59 @@
-package piles.shite;
+package piles.source;
 
-import java.applet.* ;
-import java.awt.* ;
-import java.awt.event.* ;
-import java.net.* ;
-import java.awt.image.* ;
-import java.util.* ;
+import java.net.*;
+import java.awt.*;
+import java.awt.event.*;
 
-public class Piles extends Frame
+import java.applet.*;
+
+import java.awt.image.*;
+import java.util.*;
+
+
+public class PilesGame extends Applet
+{
+  Button button = null ;
+  boolean running = false ;
+  PilesGame thisApplet = this ;
+
+	public void init()
+	{
+    Color background = null ;
+    String value = null ;
+
+    try {
+      value = getParameter("background") ;
+      background = new Color(Integer.parseInt(value,16)) ;
+    } catch(Exception e) {
+      background = Color.white ;
+    }
+
+    this.setBackground(background) ;
+
+    button = new Button("Click to play.") ;
+
+    this.add(button) ;
+
+    button.addMouseListener(new MouseAdapter() {
+      public void mousePressed(MouseEvent e) {
+        if(!running) {
+          Piles game = new Piles(thisApplet) ;
+          running = true ;
+        }
+      }
+    }) ;
+	}
+
+  public void paint(Graphics g) {
+    //System.out.println("StartButton paint") ;
+    if(running)
+      button.setLabel("Running...") ;
+    else
+      button.setLabel("Click to play.") ;
+  }
+}
+
+class Piles extends Frame
 {
 
   public static final int F_NOFILTER      = 0 ;
@@ -99,9 +145,9 @@ public class Piles extends Frame
 
   public Button button ;
   public Label label ;
-  final private StartButton parent ;
+  final private PilesGame parent ;
 
-  public Piles(StartButton pparent)
+  public Piles(PilesGame pparent)
   {
     this.parent = pparent ;
     System.out.println("Welcome to piles.") ;
@@ -703,3 +749,88 @@ public class Piles extends Frame
 
 }
 
+class QuitRetryDlg extends Dialog
+{
+  Piles dad ;
+  public QuitRetryDlg(Frame dw,String title,Piles parent)
+  {
+    super(dw, title, true);
+    dad = parent ;
+    Panel p1 = new Panel();
+    p1.setLayout(new FlowLayout(FlowLayout.RIGHT));
+    Label label = new Label("No more moves. Would you like to play again ?");
+    p1.add(label);
+    Button quit = new Button("Quit");
+    Button retry = new Button("Retry");
+    p1.add(retry);
+    p1.add(quit);
+    add("Center", p1);
+    //Initialize this dialog to its preferred size.
+    pack();
+
+    quit.addMouseListener(
+      new MouseAdapter()
+      {
+        public void mousePressed(MouseEvent e)
+        {
+          System.out.println("quit") ;
+          quitgame(true) ;
+          dispose() ;
+        }
+      }
+    ) ;
+
+    retry.addMouseListener(
+      new MouseAdapter()
+      {
+        public void mousePressed(MouseEvent e)
+        {
+          System.out.println("retry") ;
+          quitgame(false) ;
+          dispose() ;
+        }
+      }
+    ) ;
+  }
+  void
+  quitgame(boolean val)
+  {
+    //dad.game_on = val ;
+    if(val)
+      dad.quit() ;
+    else
+      dad.restart() ;
+  }
+}
+
+class HalfAlphaFilter extends RGBImageFilter {
+
+  public HalfAlphaFilter() {
+    canFilterIndexColorModel = true ;
+  }
+
+  public int filterRGB(int x, int y, int rgb)
+  {
+    return (rgb & 0x7fffffff) ;
+  }
+}
+
+class TransFilter extends RGBImageFilter{
+  public TransFilter(){
+          canFilterIndexColorModel = true ;
+      }
+      public int filterRGB(int x,int y,int rgb ){
+    // if rgb is not 0xff00ff then set alpha to full (no transparency) otherwise set it to 00
+              return  ((rgb & 0xffffff) != 0xff00ff) ? (0xff000000 | rgb) : (rgb & 0xffffff) ;
+       }
+}
+
+class Brick {
+  public int imgindex ;
+
+  // constructor
+  public Brick(int imgindex)
+  {
+    this.imgindex = imgindex ;
+  }
+}
