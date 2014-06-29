@@ -1,3 +1,7 @@
+/*
+    Mahjong type game.
+    Teo Sartori 1997
+*/
 package piles.source;
 
 import java.net.*;
